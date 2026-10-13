@@ -9,7 +9,7 @@ button{padding:6px 10px;border:0;border-radius:5px;background:#2b4a6b;color:#fff
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
 <div id="info"><b>Skonaren 3 &amp; 4, Hjo</b><br>Villa + new addition (tillbyggnad) + garage<br>Built from Aaro Arkitektkontor drawings 369 (bygglov).<br>Colours/details are assumed. Drag to orbit, scroll to zoom.</div>
-<div id="btns"><button data-v="ne">Porch (east)</button><button data-v="se">North-east</button><button data-v="nw">North-west</button><button data-v="top">Top</button><button data-v="door">Entrance</button><button data-v="gar">Garage</button><button data-v="gard">Garage doors</button></div>
+<div id="btns"><button data-v="ne">Porch (east)</button><button data-v="se">North-east</button><button data-v="nw">North-west</button><button data-v="top">Top</button><button data-v="door">Entrance</button><button data-v="gar">Garage</button><button data-v="gard">Garage doors</button><button data-v="fence">Fence</button></div>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -247,12 +247,18 @@ label('Garage',23.5,5.2,12.4,1.1);
 {const hm=new THREE.MeshStandardMaterial({color:0x2f6b2a,roughness:1});
  const h=new THREE.Mesh(new THREE.BoxGeometry(48,1.8,1.0),hm);h.position.set(8,0.9,20.4);h.castShadow=true;scene.add(h);
  label('Hedge (5 m from new building)',8,2.6,20.4,1.1,'#1f5a1a');}
-{const fm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7}),fx=31.9,z0=12.78,z1=18.53,n=Math.round((z1-z0)/0.6);
+{const fm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7}),fx=31.9,zA=-8,zB=12.78,gA=0,gB=3;
  const fence=new THREE.Group();
- for(let i=0;i<=n;i++){const z=z0+(z1-z0)*i/n;const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);}
- for(const y of[0.35,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,z1-z0),fm);r.position.set(fx,y,(z0+z1)/2);fence.add(r);}
- scene.add(fence);}
-const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[42,6,22,27,1,15.5]};
+ const post=z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);};
+ const seg=(a,b)=>{const n=Math.max(1,Math.round((b-a)/0.6));for(let i=0;i<=n;i++)post(a+(b-a)*i/n);
+  for(const y of[0.35,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,b-a),fm);r.position.set(fx,y,(a+b)/2);fence.add(r);}};
+ seg(zA,gA);seg(gB,zB);
+ const gate=new THREE.Group();gate.position.set(fx,0,gB);
+ for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,gB-gA),fm);r.position.set(0,y,-(gB-gA)/2);gate.add(r);}
+ for(let i=0;i<=5;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,-(gB-gA)*i/5);gate.add(p);}
+ fence.add(gate);scene.add(fence);
+ let open=false;const gb=document.createElement('button');gb.textContent='Open gate';gb.onclick=()=>{open=!open;gate.rotation.y=open?-Math.PI/2*0.95:0;gb.textContent=open?'Close gate':'Open gate'};document.getElementById('btns').appendChild(gb);}
+const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[42,6,22,27,1,15.5],fence:[40,5,2,28,1,2]};
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.dataset.v];cam.position.set(v[0],v[1],v[2]);ctl.target.set(v[3],v[4],v[5])});
 cam.position.set(...views.se.slice(0,3));ctl.target.set(...views.se.slice(3));
 ctl.autoRotate=false;
