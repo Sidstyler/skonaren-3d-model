@@ -224,7 +224,7 @@ gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,11.1);
 add(gar);
 
 // ---------- Existing shed ----------
-const shed=gable(2.6,5.7,2.3,3.4,mat.house,0.25);shed.rotation.y=Math.PI/2;shed.position.set(29.05,0,-4.2);add(shed);
+const shed=gable(2.6,5.7,2.3,3.4,mat.house,0.25);shed.rotation.y=0;shed.position.set(14.5,0,16.05);add(shed);
 
 // ---------- Trees & neighbours ----------
 function tree(x,z,s=1){const t=new THREE.Group();t.add(box(0.3*s,2*s,0.3*s,M(0x5a4030),[0,1*s,0]));
