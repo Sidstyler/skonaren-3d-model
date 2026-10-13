@@ -220,7 +220,7 @@ gar.add(box(0.9,2.1,0.08,mat.door,[bx(2),1.05,-3.42]));
 gar.add(box(2.0,1.4,0.08,mat.trim,[bx(3),1.7,-3.42]));gar.add(box(1.84,1.24,0.1,mat.glass,[bx(3),1.7,-3.44]));
 for(const u of[-0.3,0.3])gar.add(box(0.05,1.24,0.12,mat.trim,[bx(3)+u,1.7,-3.45]));
 gar.add(box(1.84,0.05,0.12,mat.trim,[bx(3),1.7,-3.45]));
-gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,12.4);
+gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,11.1);
 add(gar);
 
 // ---------- Existing shed ----------
@@ -248,7 +248,7 @@ label('1 m window',5.5,3.6,9.8,0.9);
 label('Open porch',7,3.3,8.0,0.9);
 label('Old house',2.5,8.4,4.9,1.1);
 label('New building',9.5,8.2,12.6,1.1);
-label('Garage',23.5,5.2,12.4,1.1);
+label('Garage',23.5,5.2,11.1,1.1);
 
 {const hm=new THREE.MeshStandardMaterial({color:0x2f6b2a,roughness:1});
  const h=new THREE.Mesh(new THREE.BoxGeometry(48,1.8,1.0),hm);h.position.set(8,0.9,20.4);h.castShadow=true;scene.add(h);const h2=h.clone();h2.position.set(8,0.9,-7.0);scene.add(h2);
@@ -257,10 +257,10 @@ label('Garage',23.5,5.2,12.4,1.1);
  for(let i=0;i<2;i++)for(let j=0;j<2;j++){const s=150+Math.random()*30;g.fillStyle=`rgb(${s},${s-4},${s-10})`;g.fillRect(i*128,j*128,128,128);}
  g.strokeStyle='#5c5a55';g.lineWidth=6;g.strokeRect(0,0,256,256);g.beginPath();g.moveTo(128,0);g.lineTo(128,256);g.moveTo(0,128);g.lineTo(256,128);g.stroke();
  const tx=new THREE.CanvasTexture(c);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=8;
- const zA=12.775,zB=18.525,xA=26.9,xB=31.9;tx.repeat.set((zB-zA)/0.6,(xB-xA)/0.6);
+ const zA=11.475,zB=17.225,xA=26.9,xB=31.9;tx.repeat.set((zB-zA)/0.6,(xB-xA)/0.6);
  const m=new THREE.Mesh(new THREE.PlaneGeometry(zB-zA,xB-xA),new THREE.MeshStandardMaterial({map:tx,roughness:.95,polygonOffset:true,polygonOffsetFactor:-4}));
  m.rotation.x=-Math.PI/2;m.rotation.z=Math.PI/2;m.position.set((xA+xB)/2,0.06,(zA+zB)/2);m.receiveShadow=true;scene.add(m);}
-{const fm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7}),fx=31.9,zA=-8,zB=12.78,gA=0,gB=3;
+{const fm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7}),fx=31.9,zA=-8,zB=11.48,gA=0,gB=3;
  const fence=new THREE.Group();
  const post=z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);};
  const seg=(a,b)=>{const n=Math.max(1,Math.round((b-a)/0.6));for(let i=0;i<=n;i++)post(a+(b-a)*i/n);
