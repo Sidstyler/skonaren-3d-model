@@ -80,7 +80,6 @@ function windows(parent,origin,dir,normal,n,gap,w,h,y,glass=mat.glass){
 // ---------- Ground ----------
 const flat=(w,d,c,x,y,z,rough=1)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(c,{roughness:rough}));p.rotation.x=-Math.PI/2;p.position.set(x,y,z);p.receiveShadow=true;scene.add(p)};
 flat(300,300,0x6f8f4e,0,-0.02,0);
-flat(34,6,0xb8ae98,16,0.01,18);
 flat(120,6,0x5d5f63,14,0.0,24.5);
 
 // ---------- Existing villa: main body 5.0 x 9.8 (ridge along z, 41 deg) + cross-gable block (ridge along x, 34 deg) ----------
