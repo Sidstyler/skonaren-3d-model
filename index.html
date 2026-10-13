@@ -271,7 +271,7 @@ label('Garage',23.5,5.2,12.4,1.1);
   for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,w),fm);r.position.set(0,y,d*w/2);gate.add(r);}
   const n=Math.max(1,Math.round(w/0.6));for(let i=0;i<=n;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,d*w*i/n);gate.add(p);}
   fence.add(gate);return [gate,d];});
-  let open=false;const b=document.createElement('button');b.textContent='Open '+name;b.onclick=()=>{open=!open;gs.forEach(([g,d])=>g.rotation.y=open?d*Math.PI/2*0.95:0);b.textContent=(open?'Close ':'Open ')+name};document.getElementById('btns').appendChild(b);};
+  let open=true;gs.forEach(([g,d])=>g.rotation.y=d*Math.PI/2*0.95);const b=document.createElement('button');b.textContent='Close '+name;b.onclick=()=>{open=!open;gs.forEach(([g,d])=>g.rotation.y=open?d*Math.PI/2*0.95:0);b.textContent=(open?'Close ':'Open ')+name};document.getElementById('btns').appendChild(b);};
  mkGate([[g1,1.5,-1],[sz,1.5,1]],'wide gate');mkGate([[g2,1,-1]],'small gate');scene.add(fence);}
 const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[36,3,15.5,27,1.8,15.5],fence:[40,5,-1,28,1,-1]};
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.dataset.v];cam.position.set(v[0],v[1],v[2]);ctl.target.set(v[3],v[4],v[5])});
