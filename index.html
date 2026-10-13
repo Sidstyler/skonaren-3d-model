@@ -203,7 +203,7 @@ add(nw);
 // ---------- Garage / komplementbyggnad (13 x 6.8, 4 gable bays, eave 2.5, ridge 3.7) ----------
 const gar=new THREE.Group();
 const bays=4,bw=13/bays,bx=i=>-6.5+bw*(i+0.5);
-for(let i=0;i<bays;i++){const g=gable(bw,6.8,2.5,3.7,mat.gar,0.35);g.position.set(bx(i),0,0);gar.add(g);}
+for(let i=0;i<bays;i++){const g=gable(bw,6.8,2.5,3.7,mat.house,0.35);g.position.set(bx(i),0,0);gar.add(g);}
 // street facade (z=+3.42), per elevation: 2 garage doors with small round windows | 2 plain bays with small square windows
 const dm=new THREE.MeshStandardMaterial({color:0xe9e7df,roughness:.8});
 for(let i=0;i<2;i++){gar.add(box(2.7,2.3,0.08,dm,[bx(i),1.15,3.42]));
@@ -225,7 +225,7 @@ gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,12.4);
 add(gar);
 
 // ---------- Existing shed ----------
-const shed=gable(2.6,5.7,2.3,3.4,mat.gar,0.25);shed.rotation.y=Math.PI/2;shed.position.set(24,0,-4.2);add(shed);
+const shed=gable(2.6,5.7,2.3,3.4,mat.house,0.25);shed.rotation.y=Math.PI/2;shed.position.set(24,0,-4.2);add(shed);
 
 // ---------- Trees & neighbours ----------
 function tree(x,z,s=1){const t=new THREE.Group();t.add(box(0.3*s,2*s,0.3*s,M(0x5a4030),[0,1*s,0]));
