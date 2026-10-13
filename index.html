@@ -251,7 +251,7 @@ label('New building',9.5,8.2,12.6,1.1);
 label('Garage',23.5,5.2,12.4,1.1);
 
 {const hm=new THREE.MeshStandardMaterial({color:0x2f6b2a,roughness:1});
- const h=new THREE.Mesh(new THREE.BoxGeometry(48,1.8,1.0),hm);h.position.set(8,0.9,20.4);h.castShadow=true;scene.add(h);
+ const h=new THREE.Mesh(new THREE.BoxGeometry(48,1.8,1.0),hm);h.position.set(8,0.9,20.4);h.castShadow=true;scene.add(h);const h2=h.clone();h2.position.set(8,0.9,-7.0);scene.add(h2);
  label('Hedge (5 m from new building)',8,2.6,20.4,1.1,'#1f5a1a');}
 {const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
  for(let i=0;i<2;i++)for(let j=0;j<2;j++){const s=150+Math.random()*30;g.fillStyle=`rgb(${s},${s-4},${s-10})`;g.fillRect(i*128,j*128,128,128);}
