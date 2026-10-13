@@ -204,7 +204,14 @@ add(nw);
 const gar=new THREE.Group();
 const bays=4,bw=13/bays,bx=i=>-6.5+bw*(i+0.5);
 for(let i=0;i<bays;i++){const g=gable(bw,6.8,2.5,3.7,mat.gar,0.35);g.position.set(bx(i),0,0);gar.add(g);}
-for(let i=0;i<2;i++)gar.add(box(2.5,2.1,0.08,mat.door,[bx(i),1.05,3.42]));
+// street facade (z=+3.42), per elevation: 2 garage doors with small round windows | 2 plain bays with small square windows
+const dm=new THREE.MeshStandardMaterial({color:0xe9e7df,roughness:.8});
+for(let i=0;i<2;i++){gar.add(box(2.7,2.3,0.08,dm,[bx(i),1.15,3.42]));
+ for(let k=-5;k<=5;k++)gar.add(box(0.03,2.2,0.03,mat.trim,[bx(i)+k*0.25,1.15,3.47]));
+ gar.add(box(0.12,0.04,0.04,mat.grey,[bx(i)-0.1,1.1,3.5]));
+ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,0.1,24),mat.glass);c.rotation.x=Math.PI/2;c.position.set(bx(i),2.95,3.42);gar.add(c);
+ const r=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.04,8,24),mat.trim);r.position.set(bx(i),2.95,3.46);gar.add(r);}
+for(let i=2;i<4;i++){gar.add(box(0.5,0.5,0.06,mat.trim,[bx(i),2.95,3.42]));gar.add(box(0.34,0.34,0.08,mat.glass,[bx(i),2.95,3.45]));}
 // garden facade (z=-3.42), per elevation: window | door + small round | round | round
 const rnd=(x,y,r)=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,0.1,32),mat.glass);c.rotation.x=Math.PI/2;c.position.set(x,y,-3.42);gar.add(c);
  const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.05,8,32),mat.trim);ring.position.set(x,y,-3.47);gar.add(ring);
@@ -258,7 +265,7 @@ label('Garage',23.5,5.2,12.4,1.1);
  for(let i=0;i<=5;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,-(gB-gA)*i/5);gate.add(p);}
  fence.add(gate);scene.add(fence);
  let open=false;const gb=document.createElement('button');gb.textContent='Open gate';gb.onclick=()=>{open=!open;gate.rotation.y=open?-Math.PI/2*0.95:0;gb.textContent=open?'Close gate':'Open gate'};document.getElementById('btns').appendChild(gb);}
-const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[42,6,22,27,1,15.5],fence:[40,5,2,28,1,2]};
+const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[36,3,15.5,27,1.8,15.5],fence:[40,5,2,28,1,2]};
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.dataset.v];cam.position.set(v[0],v[1],v[2]);ctl.target.set(v[3],v[4],v[5])});
 cam.position.set(...views.se.slice(0,3));ctl.target.set(...views.se.slice(3));
 ctl.autoRotate=false;
