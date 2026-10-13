@@ -265,8 +265,8 @@ label('Garage',23.5,5.2,12.4,1.1);
  const post=z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);};
  const seg=(a,b)=>{const n=Math.max(1,Math.round((b-a)/0.6));for(let i=0;i<=n;i++)post(a+(b-a)*i/n);
   for(const y of[0.35,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,b-a),fm);r.position.set(fx,y,(a+b)/2);fence.add(r);}};
- const sz=-2.9,g1=sz+3,g2=g1+1.5;
- seg(g1,g1+0.5);seg(g2,zB);
+ const sz=-2.4,g1=sz+3,g2=g1+1.5;
+ seg(sz-0.5,sz);seg(g1,g1+0.5);seg(g2,zB);
  const mkGate=(leaves,name)=>{const gs=leaves.map(([hz,w,d])=>{const gate=new THREE.Group();gate.position.set(fx,0,hz);
   for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,w),fm);r.position.set(0,y,d*w/2);gate.add(r);}
   const n=Math.max(1,Math.round(w/0.6));for(let i=0;i<=n;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,d*w*i/n);gate.add(p);}
