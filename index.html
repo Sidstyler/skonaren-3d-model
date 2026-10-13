@@ -265,13 +265,15 @@ label('Garage',23.5,5.2,12.4,1.1);
  const post=z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);};
  const seg=(a,b)=>{const n=Math.max(1,Math.round((b-a)/0.6));for(let i=0;i<=n;i++)post(a+(b-a)*i/n);
   for(const y of[0.35,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,b-a),fm);r.position.set(fx,y,(a+b)/2);fence.add(r);}};
- seg(gB,zB);
- const gate=new THREE.Group();gate.position.set(fx,0,gB);
- for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,gB-gA),fm);r.position.set(0,y,-(gB-gA)/2);gate.add(r);}
- for(let i=0;i<=5;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,-(gB-gA)*i/5);gate.add(p);}
- fence.add(gate);scene.add(fence);
- let open=false;const gb=document.createElement('button');gb.textContent='Open gate';gb.onclick=()=>{open=!open;gate.rotation.y=open?-Math.PI/2*0.95:0;gb.textContent=open?'Close gate':'Open gate'};document.getElementById('btns').appendChild(gb);}
-const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[36,3,15.5,27,1.8,15.5],fence:[40,5,2,28,1,2]};
+ const sz=-2.9,g1=sz+3,g2=g1+1;
+ seg(g2,zB);
+ const mkGate=(hz,w,name)=>{const gate=new THREE.Group();gate.position.set(fx,0,hz);
+  for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,w),fm);r.position.set(0,y,-w/2);gate.add(r);}
+  const n=Math.round(w/0.6);for(let i=0;i<=n;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,-w*i/n);gate.add(p);}
+  fence.add(gate);
+  let open=false;const b=document.createElement('button');b.textContent='Open '+name;b.onclick=()=>{open=!open;gate.rotation.y=open?-Math.PI/2*0.95:0;b.textContent=(open?'Close ':'Open ')+name};document.getElementById('btns').appendChild(b);};
+ mkGate(g1,3,'wide gate');mkGate(g2,1,'small gate');scene.add(fence);}
+const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8],gar:[10,3,12.4,20,1.8,12.4],gard:[36,3,15.5,27,1.8,15.5],fence:[40,5,-1,28,1,-1]};
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.dataset.v];cam.position.set(v[0],v[1],v[2]);ctl.target.set(v[3],v[4],v[5])});
 cam.position.set(...views.se.slice(0,3));ctl.target.set(...views.se.slice(3));
 ctl.autoRotate=false;
