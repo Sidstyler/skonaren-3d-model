@@ -224,7 +224,7 @@ gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,12.4);
 add(gar);
 
 // ---------- Existing shed ----------
-const shed=gable(2.6,5.7,2.3,3.4,mat.house,0.25);shed.rotation.y=Math.PI/2;shed.position.set(24,0,-4.2);add(shed);
+const shed=gable(2.6,5.7,2.3,3.4,mat.house,0.25);shed.rotation.y=Math.PI/2;shed.position.set(29.05,0,-4.2);add(shed);
 
 // ---------- Trees & neighbours ----------
 function tree(x,z,s=1){const t=new THREE.Group();t.add(box(0.3*s,2*s,0.3*s,M(0x5a4030),[0,1*s,0]));
@@ -265,7 +265,7 @@ label('Garage',23.5,5.2,12.4,1.1);
  const post=z=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.0,0.1),fm);p.position.set(fx,0.5,z);p.castShadow=true;fence.add(p);};
  const seg=(a,b)=>{const n=Math.max(1,Math.round((b-a)/0.6));for(let i=0;i<=n;i++)post(a+(b-a)*i/n);
   for(const y of[0.35,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,b-a),fm);r.position.set(fx,y,(a+b)/2);fence.add(r);}};
- seg(zA,gA);seg(gB,zB);
+ seg(gB,zB);
  const gate=new THREE.Group();gate.position.set(fx,0,gB);
  for(const y of[0.2,0.5,0.8]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.08,gB-gA),fm);r.position.set(0,y,-(gB-gA)/2);gate.add(r);}
  for(let i=0;i<=5;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),fm);p.position.set(0,0.5,-(gB-gA)*i/5);gate.add(p);}
