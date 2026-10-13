@@ -1,0 +1,249 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Skonaren 3-4, Hjo – 3D model</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#cfe3f1;font-family:Segoe UI,sans-serif}
+#info{position:absolute;left:12px;top:10px;background:#fffc;padding:8px 12px;border-radius:6px;font-size:13px;line-height:1.4}
+#btns{position:absolute;right:12px;top:10px;display:flex;gap:6px}
+button{padding:6px 10px;border:0;border-radius:5px;background:#2b4a6b;color:#fff;cursor:pointer}
+</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="info"><b>Skonaren 3 &amp; 4, Hjo</b><br>Villa + new addition (tillbyggnad) + garage<br>Built from Aaro Arkitektkontor drawings 369 (bygglov).<br>Colours/details are assumed. Drag to orbit, scroll to zoom.</div>
+<div id="btns"><button data-v="ne">Porch (east)</button><button data-v="se">North-east</button><button data-v="nw">North-west</button><button data-v="top">Top</button><button data-v="door">Entrance</button></div>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xbcd8ee);scene.fog=new THREE.Fog(0xbcd8ee,70,160);
+const cam=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.1,500);
+const ctl=new OrbitControls(cam,renderer.domElement);ctl.target.set(12,2.5,6);ctl.maxPolarAngle=Math.PI*0.495;ctl.enableDamping=true;
+
+scene.add(new THREE.HemisphereLight(0xdfeeff,0x6b7a55,0.85));
+const sun=new THREE.DirectionalLight(0xfff1dd,2.2);
+sun.position.set(-18,28,34);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);
+Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,near:1,far:120});sun.shadow.bias=-0.0003;
+sun.target.position.set(7,0,8);scene.add(sun,sun.target);
+const fill=new THREE.DirectionalLight(0xffffff,1.1);fill.position.set(40,18,25);scene.add(fill);
+
+function sidingTex(base,line){const c=document.createElement('canvas');c.width=64;c.height=256;const g=c.getContext('2d');
+ g.fillStyle=base;g.fillRect(0,0,64,256);g.fillStyle=line;for(let y=0;y<256;y+=16)g.fillRect(0,y,64,2);
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.repeat.set(1,0.5);return t;}
+const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.85,...o});
+const mat={
+ house:new THREE.MeshStandardMaterial({map:sidingTex('#e8b878','#c99a5c'),roughness:.9}),
+ roofHouse:M(0xb4503a,{roughness:.55}),
+ add:new THREE.MeshStandardMaterial({color:0x9a9c9a,roughness:.8}),
+ grey:new THREE.MeshStandardMaterial({color:0x9a9c9a,roughness:.8}),
+ gar:new THREE.MeshStandardMaterial({map:sidingTex('#e6dcc6','#c3b79b'),roughness:.9}),
+ roof:M(0xb4503a,{roughness:.55}),
+ trim:M(0xf4f1ea),
+ glass:new THREE.MeshPhysicalMaterial({color:0x7fa4b8,roughness:.05,metalness:.1,transparent:true,opacity:.6}),
+ door:M(0x4a4f55),
+ brick:M(0xb4452f)
+};
+const shadowed=o=>{o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});return o};
+const add=(o)=>{scene.add(shadowed(o));return o};
+const V=THREE.Vector3;
+function box(w,h,d,m,pos){const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(...pos);return b}
+
+// Gable building: span along x, ridge along z, base y=0, centred on x/z origin
+function gable(span,len,eave,ridge,wallM,over=0.45,roofM=mat.roof){
+ const g=new THREE.Group(),h=span/2;
+ const s=new THREE.Shape([new THREE.Vector2(-h,0),new THREE.Vector2(h,0),new THREE.Vector2(h,eave),new THREE.Vector2(0,ridge),new THREE.Vector2(-h,eave)]);
+ const geo=new THREE.ExtrudeGeometry(s,{depth:len,bevelEnabled:false});geo.translate(0,0,-len/2);
+ g.add(new THREE.Mesh(geo,wallM));
+ const rise=ridge-eave,a=Math.atan2(rise,h),L=Math.hypot(h,rise)+over;
+ for(const sg of[-1,1]){
+  const r=new THREE.Mesh(new THREE.BoxGeometry(L,0.12,len+2*over*0.8),roofM);
+  const mx=sg*h/2+sg*(over/2)*Math.cos(a)+sg*0.06*Math.sin(a);
+  const my=(eave+ridge)/2-(over/2)*Math.sin(a)+0.06*Math.cos(a);
+  r.position.set(mx,my,0);r.rotation.z=-sg*a;g.add(r);
+ }
+ return g;
+}
+
+function windows(parent,origin,dir,normal,n,gap,w,h,y,glass=mat.glass){
+ for(let i=0;i<n;i++){
+  const c=origin.clone().addScaledVector(dir,i*gap);c.y=y;
+  const grp=new THREE.Group();
+  grp.add(new THREE.Mesh(new THREE.BoxGeometry(w+(parent===villa?0.4:0.14),h+(parent===villa?0.4:0.14),0.06),mat.trim),new THREE.Mesh(new THREE.BoxGeometry(w,h,0.09),glass));
+  grp.position.copy(c).addScaledVector(normal,0.03);grp.rotation.y=Math.atan2(normal.x,normal.z);parent.add(grp);
+ }
+}
+
+// ---------- Ground ----------
+const flat=(w,d,c,x,y,z,rough=1)=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(c,{roughness:rough}));p.rotation.x=-Math.PI/2;p.position.set(x,y,z);p.receiveShadow=true;scene.add(p)};
+flat(300,300,0x6f8f4e,0,-0.02,0);
+flat(34,6,0xb8ae98,16,0.01,18);
+flat(120,6,0x5d5f63,14,0.0,24.5);
+
+// ---------- Existing villa: main body 5.0 x 9.8 (ridge along z, 41 deg) + cross-gable block (ridge along x, 34 deg) ----------
+const villa=new THREE.Group();
+const vg=gable(5.0,9.8,5.0,7.2,mat.house,0.45,mat.roofHouse);vg.position.set(2.5,0,4.9);villa.add(vg);
+const cg=gable(7.0,6.8,4.9,7.26,mat.house,0.5,mat.roofHouse);cg.rotation.y=Math.PI/2;cg.position.set(5.9,0,4.25);villa.add(cg);
+villa.add(box(0.9,2.0,0.9,mat.brick,[4.2,7.6,4.25]));
+// small one-storey bay on the north side
+villa.add(box(1.65,3.0,1.1,mat.house,[5.83,1.5,0.3]));
+villa.add(box(1.9,0.12,1.4,mat.roofHouse,[5.83,3.06,0.25]));
+const Wd=(x,z,nx,nz,w,h,y)=>windows(villa,new V(x,0,z),new V(0,0,1),new V(nx,0,nz),1,1,w,h,y);
+// NE gable (x=9.3)
+Wd(9.3,2.65,1,0,1.1,1.6,1.75);Wd(9.3,5.85,1,0,1.1,1.6,1.75);Wd(9.3,4.25,1,0,1.2,1.7,4.15);Wd(9.3,2.65,1,0,0.7,1.0,4.0);Wd(9.3,5.85,1,0,0.7,1.0,4.0);
+// SE gable (z=9.8): two windows below, triple lancet above
+const Wx=(x,z,nx,nz,w,h,y)=>windows(villa,new V(x,0,z),new V(1,0,0),new V(nx,0,nz),1,1,w,h,y);
+Wx(1.4,9.8,0,1,1.1,1.6,1.75);Wx(3.6,9.8,0,1,1.1,1.6,1.75);Wx(2.5,9.8,0,1,1.5,1.7,4.15);
+// NW gable (z=0) and SW side (x=0)
+Wx(2.5,0,0,-1,1.1,1.6,1.75);Wx(2.5,0,0,-1,1.1,1.5,4.2);Wx(7.5,0.75,0,-1,1.2,1.4,1.75);
+Wd(0,2.4,-1,0,1.1,1.6,1.75);Wd(0,7.0,-1,0,1.1,1.6,1.75);Wd(0,2.4,-1,0,1.0,1.4,4.2);Wd(0,7.0,-1,0,1.0,1.4,4.2);
+// floor divide, corner boards and base boards on the villa
+const gb=mat.grey,by=2.95;
+villa.add(box(0.08,0.22,9.9,gb,[-0.02,by,4.9]),box(5.1,0.22,0.08,gb,[2.5,by,9.82]),box(5.1,0.22,0.08,gb,[2.5,by,-0.02]),box(0.08,0.22,2.05,gb,[5.02,by,8.78]),
+ box(0.08,0.22,7.1,gb,[9.32,by,4.25]),box(4.4,0.22,0.08,gb,[7.5,by,0.73]),box(4.4,0.22,0.08,gb,[7.5,by,7.77]));
+for(const[x,z]of[[0,0],[5,0],[0,9.8],[5,9.8],[9.3,0.75],[9.3,7.75]])villa.add(box(0.17,4.9,0.17,gb,[x,2.45,z]));
+villa.add(box(0.08,0.3,9.9,gb,[-0.02,0.15,4.9]),box(5.1,0.3,0.08,gb,[2.5,0.15,9.82]),box(0.08,0.3,7.1,gb,[9.32,0.15,4.25]));
+add(villa);
+
+// ---------- New addition (5.6 x 5.6, 2 floors, hip roof, ridge 6.9 m) ----------
+const nw=new THREE.Group();
+const ax=4.1+2.8,az=7.9+2.8;
+// porch/link between villa (y=6.2) and addition (y=7.9): ground-level glazed porch + upper-floor connection
+const tc=document.createElement('canvas');tc.width=tc.height=128;{const g=tc.getContext('2d');g.fillStyle='#c9c6bd';g.fillRect(0,0,128,128);g.strokeStyle='#8d8a82';g.lineWidth=3;g.strokeRect(0,0,128,128)}
+const tileTex=new THREE.CanvasTexture(tc);tileTex.wrapS=tileTex.wrapT=THREE.RepeatWrapping;tileTex.repeat.set(5,3);tileTex.colorSpace=THREE.SRGBColorSpace;
+const pg=new THREE.Group();
+pg.add(box(3.9,0.15,2.05,new THREE.MeshStandardMaterial({map:tileTex}),[6.95,0.08,8.78]));
+pg.add(box(3.9,0.2,2.05,mat.roof,[6.95,2.7,8.78]));
+for(const z of[7.9,9.7])pg.add(box(0.14,2.6,0.14,mat.trim,[8.85,1.3,z]));
+pg.add(box(0.08,0.35,2.05,mat.trim,[8.9,2.45,8.78]));
+pg.add(box(1.0,2.6,0.08,mat.glass,[5.5,1.3,9.76]));
+
+
+
+const br=gable(2.0,2.0,2.25,3.25,mat.roofHouse,0.2);br.position.set(6.6,2.65,8.78);pg.add(br);
+pg.add(box(2.0,0.3,2.0,mat.trim,[6.6,2.65,8.78]));
+pg.add(box(1.0,2.6,0.08,mat.glass,[5.5,1.3,9.76]));
+pg.add(box(1.0,2.6,0.08,mat.glass,[5.5,1.3,9.76]));
+pg.add(box(1.0,0.08,0.1,mat.trim,[5.5,1.0,9.76]));
+{const rd=M(0xc0291f,{roughness:.5,emissive:0x400a06}),xf=8.88;
+ pg.add(box(0.08,2.1,1.0,rd,[xf,1.1,8.7]));
+ pg.add(box(0.09,0.9,0.4,mat.glass,[xf,1.55,8.7]));
+ pg.add(box(0.12,0.3,0.06,mat.trim,[xf+0.03,1.1,9.1]));
+ pg.add(box(0.05,2.3,0.06,mat.trim,[xf,1.15,8.17]));
+ pg.add(box(0.05,2.3,0.06,mat.trim,[xf,1.15,9.23]));
+ pg.add(box(0.06,2.1,0.45,mat.glass,[xf,1.1,7.95]));
+ pg.add(box(0.06,2.1,0.45,mat.glass,[xf,1.1,9.48]));
+ pg.add(box(0.06,0.3,2.0,mat.glass,[xf,2.3,8.78]));}
+add(pg);
+nw.position.set(1.9,0,1.9);
+const lv=sidingTex('#e8b878','#c99a5c');lv.repeat.set(1,1);
+const louvre=new THREE.MeshStandardMaterial({map:lv,roughness:.8});
+const frameM=mat.trim;
+const W={NE:[9.7,1,0],SW:[4.1,-1,0],SE:[13.5,0,1],NW:[7.9,0,-1]};
+// place a flat panel on a wall face; u = coordinate along the wall (z for NE/SW, x for SE/NW)
+function F(face,u,cy,w,h,m,t=0.07,off=0){
+ const [p,nx,nz]=W[face],o=p+(nx||nz)*(t/2+off);
+ const b=nx?box(t,h,w,m,[o,cy,u]):box(w,h,t,m,[u,cy,o]);nw.add(b);return b;
+}
+function win(face,u,cy,w,h,cols=2,rows=2){
+ F(face,u,cy,w+0.16,h+0.16,frameM,0.05);
+ F(face,u,cy,w,h,mat.glass,0.08);
+ for(let i=1;i<cols;i++)F(face,u-w/2+w*i/cols,cy,0.05,h,frameM,0.1);
+ for(let j=1;j<rows;j++)F(face,u,cy-h/2+h*j/rows,w,0.05,frameM,0.1);
+}
+nw.add(box(5.6,2.3,5.6,mat.add,[ax,1.15,az]));
+nw.add(box(5.7,0.35,5.7,mat.trim,[ax,2.475,az]));
+nw.add(box(5.6,2.25,5.6,mat.add,[ax,3.775,az]));
+const hip=new THREE.Mesh(new THREE.ConeGeometry(6.2/Math.SQRT2,2.0,4,1),mat.roof);
+hip.rotation.y=Math.PI/4;hip.position.set(ax,4.9+1.0,az);nw.add(hip);
+nw.add(box(0.06,0.9,0.06,mat.trim,[ax,6.9+0.35,az]));
+const zS=x=>13.5-x; // distance along NE face measured from the SE corner
+// NE face (towards the garage; A031)
+win('NE',zS(0.75),4.0,1.05,1.05);win('NE',zS(4.85),4.0,1.05,1.05);
+win('NE',zS(2.8),1.75,1.2,1.6);
+F('NE',zS(2.8),4.0,2.6,1.9,louvre);
+F('NE',zS(0.95),1.3,1.5,1.5,louvre);F('NE',zS(4.7),1.3,1.5,1.5,louvre);
+F('NE',zS(2.8),0.3,5.2,0.35,louvre);
+// SW face (towards the street; A033): glazed ground floor + window band above
+win('SW',az,1.25,2.8,2.0,6,4);win('SW',az,4.0,2.8,1.05,6,2);
+for(const u of[8.55,12.85]){F('SW',u,1.3,1.2,1.7,louvre);F('SW',u,4.0,1.2,1.7,louvre)}
+F('SW',az,2.85,2.8,0.35,louvre);
+// SE face (towards the yard; A032): French door with railing, window below, louvres on the sides
+win('SE',ax,3.75,1.2,2.0,2,1);
+const rail=box(1.2,0.9,0.05,mat.door,[ax,3.1,13.5+0.08]);rail.material=new THREE.MeshStandardMaterial({color:0x333333,wireframe:true});nw.add(rail);
+win('SE',ax,1.75,1.2,1.6);
+for(const u of[ax-1.9,ax+1.9]){F('SE',u,1.3,1.4,1.7,louvre);F('SE',u,3.85,1.4,1.7,louvre)}
+F('SE',ax,0.3,5.2,0.35,louvre);
+const gt=gable(1.7,1.2,0,0.9,mat.house,0.15);gt.position.set(ax,4.9,13.0);nw.add(gt);
+// NW face (towards the villa; A034)
+win('NW',8.05,2.2,0.9,0.5,2,1);
+F('NW',8.7,1.3,2.0,1.7,louvre);F('NW',8.7,3.85,2.0,1.7,louvre);
+F('NW',7.0,3.85,0.9,1.7,louvre);
+add(nw);
+// west (street-side) entry bay, hatched in plan 1: 2.9 m wide, projects 0.55 m, glazed with double doors
+{const eb=new THREE.Group(),z0=12.6,x0=6.0;
+ eb.add(box(0.55,0.15,2.9,new THREE.MeshStandardMaterial({map:tileTex}),[x0-0.275,0.08,z0]));
+ eb.add(box(0.06,2.2,2.9,mat.glass,[x0-0.55,1.15,z0]));
+ for(const s of[-1,1])eb.add(box(0.55,2.2,0.06,mat.glass,[x0-0.275,1.15,z0+s*1.45]));
+ for(const dz of[-0.4,0.4])eb.add(box(0.05,2.0,0.75,mat.door,[x0-0.58,1.05,z0+dz]));
+ for(const dz of[-1.45,-0.8,0,0.8,1.45])eb.add(box(0.09,2.3,0.09,mat.trim,[x0-0.55,1.15,z0+dz]));
+ eb.add(box(0.7,0.12,3.0,mat.roofHouse,[x0-0.3,2.36,z0]));
+ add(eb);}
+// open paved area east of the hall with glazed corner and post (plan 1)
+{const tr=new THREE.Group();
+ tr.add(box(2.7,0.12,2.05,new THREE.MeshStandardMaterial({map:tileTex}),[10.25,0.06,8.78]));
+ tr.add(box(0.1,2.5,0.1,mat.trim,[11.55,1.25,7.85]));
+ tr.add(box(2.8,0.2,2.05,mat.roof,[10.3,2.7,8.78]));
+ tr.add(box(0.1,2.5,0.1,mat.trim,[11.6,1.25,9.8]));
+ add(tr);}
+
+// ---------- Garage / komplementbyggnad (13 x 6.8, 4 gable bays, eave 2.5, ridge 3.7) ----------
+const gar=new THREE.Group();
+const bays=4,bw=13/bays,bx=i=>-6.5+bw*(i+0.5);
+for(let i=0;i<bays;i++){const g=gable(bw,6.8,2.5,3.7,mat.gar,0.35);g.position.set(bx(i),0,0);gar.add(g);}
+for(let i=0;i<2;i++)gar.add(box(2.5,2.1,0.08,mat.door,[bx(i),1.05,3.42]));
+for(let i=2;i<4;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.1,24),mat.glass);c.rotation.x=Math.PI/2;c.position.set(bx(i),2.4,-3.42);gar.add(c);}
+gar.add(box(0.9,2.1,0.08,mat.door,[bx(1)+bw/2,1.05,-3.42]));
+gar.rotation.y=Math.PI/2;gar.position.set(23.5,0,12.4);
+add(gar);
+
+// ---------- Existing shed ----------
+const shed=gable(2.6,5.7,2.3,3.4,mat.gar,0.25);shed.rotation.y=Math.PI/2;shed.position.set(24,0,-4.2);add(shed);
+
+// ---------- Trees & neighbours ----------
+function tree(x,z,s=1){const t=new THREE.Group();t.add(box(0.3*s,2*s,0.3*s,M(0x5a4030),[0,1*s,0]));
+ const c=new THREE.Mesh(new THREE.SphereGeometry(1.9*s,16,12),M(0x3f6b3a));c.position.y=3.6*s;c.scale.y=1.2;t.add(c);t.position.set(x,0,z);add(t)}
+[[-4,-3,1.3],[-6,9,1],[12,-7,1.2],[30,-2,1],[30,12,1.1]].forEach(a=>tree(...a));
+[[9,12,4.5,7,0xd9cdb0,14,34],[7,10,4.2,6.5,0xc9d3c8,-3,32],[8,11,4.3,6.6,0xd8c0b0,32,34]].forEach(([s,l,e,r,c,x,z])=>{const n=gable(s,l,e,r,M(c),0.4);n.position.set(x,0,z);add(n)});
+
+// ---------- UI ----------
+// ---------- Direction arrows and labels ----------
+function label(text,x,y,z,s=1,color='#111'){const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');
+ g.font='bold 54px sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=10;g.strokeStyle='#fff';g.strokeText(text,256,64);g.fillStyle=color;g.fillText(text,256,64);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false,transparent:true}));
+ sp.position.set(x,y,z);sp.scale.set(4*s,1*s,1);sp.renderOrder=10;scene.add(sp);return sp}
+{const hx=-9,hz=6;
+ [['NE',1,0,0xd62828,'NE (garage side)'],['SW',-1,0,0x1d6fd6,'SW (street)'],['SE',0,1,0x2a9d3f,'SE (yard/garden)'],['NW',0,-1,0xe08a00,'NW']].forEach(([k,dx,dz,col,txt])=>{
+  const a=new THREE.ArrowHelper(new V(dx,0,dz),new V(hx,0.3,hz),5,col,1.2,0.8);a.line.material.linewidth=3;scene.add(a);
+  label(txt,hx+dx*7,0.8,hz+dz*7,1.1,'#'+col.toString(16).padStart(6,'0'));});
+ label('N',hx+3.2,0.8,hz-3.2,0.8,'#000');}
+label('Entrance door',8.9,3.6,8.8,0.9);
+label('1 m window',5.5,3.6,9.8,0.9);
+label('Open porch',7,3.3,8.0,0.9);
+label('Old house',2.5,8.4,4.9,1.1);
+label('New building',9.5,8.2,12.6,1.1);
+label('Garage',23.5,5.2,12.4,1.1);
+
+{const hm=new THREE.MeshStandardMaterial({color:0x2f6b2a,roughness:1});
+ const h=new THREE.Mesh(new THREE.BoxGeometry(48,1.8,1.0),hm);h.position.set(8,0.9,20.4);h.castShadow=true;scene.add(h);
+ label('Hedge (5 m from new building)',8,2.6,20.4,1.1,'#1f5a1a');}
+const views={se:[22,9,30,7,3,8],ne:[17,3.5,9,7,2.5,8.5],nw:[-8,9,-12,6,2,8],top:[8,50,9,8,0,9],door:[13,1.7,8.8,8.9,1.2,8.8]};
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.dataset.v];cam.position.set(v[0],v[1],v[2]);ctl.target.set(v[3],v[4],v[5])});
+cam.position.set(...views.se.slice(0,3));ctl.target.set(...views.se.slice(3));
+ctl.autoRotate=false;
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
+</script></body></html>
