@@ -278,5 +278,35 @@ document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=views[b.
 cam.position.set(...views.se.slice(0,3));ctl.target.set(...views.se.slice(3));
 ctl.autoRotate=false;
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+// ---------- Editor: click a part, then type values ----------
+{const panel=document.createElement('div');panel.style.cssText='position:fixed;right:8px;bottom:56px;width:230px;background:rgba(255,255,255,.93);font:12px sans-serif;padding:8px;border-radius:6px;max-height:70vh;overflow:auto;display:none;z-index:9';
+ document.body.appendChild(panel);
+ const tog=document.createElement('button');tog.textContent='Edit mode: off';tog.style.cssText='position:fixed;right:8px;bottom:12px;z-index:9;padding:6px 10px;border-radius:6px;border:0;background:#2a4a6e;color:#fff;font-weight:bold;cursor:pointer';document.body.appendChild(tog);
+ let on=false,sel=null,helper=null;const ray=new THREE.Raycaster(),m2=new THREE.Vector2(),orig=new Map(),wp=new THREE.Vector3();
+ tog.onclick=()=>{on=!on;tog.textContent='Edit mode: '+(on?'on (click a part)':'off');if(!on)pick(null)};
+ function pick(o){sel=o;if(helper){scene.remove(helper);helper=null}if(!o){panel.style.display='none';return}
+  if(!orig.has(o))orig.set(o,{p:o.position.clone(),s:o.scale.clone(),r:o.rotation.y});
+  helper=new THREE.BoxHelper(o,0xff00ff);scene.add(helper);draw()}
+ function inp(label,val,step,fn){const r=document.createElement('label');r.style.cssText='display:flex;justify-content:space-between;margin:2px 0';r.append(label);const i=document.createElement('input');i.type='number';i.step=step;i.value=(+val).toFixed(3);i.style.width='80px';i.onchange=()=>{fn(parseFloat(i.value)||0);helper.update()};r.append(i);return r}
+ function draw(){panel.innerHTML='';const o=sel,b=new THREE.Box3().setFromObject(o),sz=b.getSize(new THREE.Vector3());
+  const h=document.createElement('div');h.innerHTML='<b>'+(o.type==='Group'?'Group':o.geometry.type.replace('Geometry',''))+'</b> &nbsp; size '+sz.x.toFixed(2)+' × '+sz.y.toFixed(2)+' × '+sz.z.toFixed(2)+' m (world x,y,z)';panel.append(h);
+  o.getWorldPosition(wp);
+  ['x','y','z'].forEach(a=>panel.append(inp('Position '+a+' (m)',wp[a],0.05,v=>{const w=wp.clone();o.getWorldPosition(w);w[a]=v;o.position.copy(o.parent.worldToLocal(w))})));
+  ['x','y','z'].forEach(a=>panel.append(inp('Scale '+a+' (×)',o.scale[a],0.05,v=>{o.scale[a]=v})));
+  panel.append(inp('Rotation Y (°)',o.rotation.y*180/Math.PI,5,v=>{o.rotation.y=v*Math.PI/180}));
+  const row=document.createElement('div');row.style.marginTop='6px';
+  const bt=(t,f)=>{const x=document.createElement('button');x.textContent=t;x.style.marginRight='4px';x.onclick=()=>{f();helper.update();draw()};row.append(x)};
+  bt('Select parent',()=>{if(o.parent&&o.parent!==scene)pick(o.parent)});
+  bt('Reset',()=>{const g=orig.get(o);o.position.copy(g.p);o.scale.copy(g.s);o.rotation.y=g.r});
+  bt('Close',()=>pick(null));panel.append(row);
+  const note=document.createElement('div');note.style.cssText='margin-top:6px;color:#555';note.textContent='Tip: windows are separate frame + glass parts; use Select parent to move a whole building. Changes are not saved on reload.';panel.append(note);
+  panel.style.display='block'}
+ let d0=null;const cv=renderer.domElement;
+ cv.addEventListener('pointerdown',e=>d0=[e.clientX,e.clientY]);
+ cv.addEventListener('pointerup',e=>{if(!on||!d0||Math.hypot(e.clientX-d0[0],e.clientY-d0[1])>4)return;
+  m2.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(m2,cam);
+  const hit=ray.intersectObjects(scene.children,true).find(h=>h.object.isMesh&&h.object!==helper&&h.object.geometry.type!=='PlaneGeometry');
+  if(hit)pick(hit.object)});
+}
 renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
 </script></body></html>
