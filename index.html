@@ -153,9 +153,7 @@ function win(face,u,cy,w,h,cols=2,rows=2){
  for(let i=1;i<cols;i++)F(face,u-w/2+w*i/cols,cy,0.05,h,frameM,0.1);
  for(let j=1;j<rows;j++)F(face,u,cy-h/2+h*j/rows,w,0.05,frameM,0.1);
 }
-nw.add(box(5.6,2.3,5.6,mat.add,[ax,1.15,az]));
-nw.add(box(5.7,0.35,5.7,mat.trim,[ax,2.475,az]));
-nw.add(box(5.6,2.25,5.6,mat.add,[ax,3.775,az]));
+nw.add(box(5.6,4.9,5.6,mat.house,[ax,2.45,az]));
 const hip=new THREE.Mesh(new THREE.ConeGeometry(6.2/Math.SQRT2,2.0,4,1),mat.roof);
 hip.rotation.y=Math.PI/4;hip.position.set(ax,4.9+1.0,az);nw.add(hip);
 nw.add(box(0.06,0.9,0.06,mat.trim,[ax,6.9+0.35,az]));
@@ -163,24 +161,15 @@ const zS=x=>13.5-x; // distance along NE face measured from the SE corner
 // NE face (towards the garage; A031)
 win('NE',zS(0.75),4.0,1.05,1.05);win('NE',zS(4.85),4.0,1.05,1.05);
 win('NE',zS(2.8),1.75,1.2,1.6);
-F('NE',zS(2.8),4.0,2.6,1.9,louvre);
-F('NE',zS(0.95),1.3,1.5,1.5,louvre);F('NE',zS(4.7),1.3,1.5,1.5,louvre);
-F('NE',zS(2.8),0.3,5.2,0.35,louvre);
 // SW face (towards the street; A033): glazed ground floor + window band above
 win('SW',az,1.25,2.8,2.0,6,4);win('SW',az,4.0,2.8,1.05,6,2);
-for(const u of[8.55,12.85]){F('SW',u,1.3,1.2,1.7,louvre);F('SW',u,4.0,1.2,1.7,louvre)}
-F('SW',az,2.85,2.8,0.35,louvre);
 // SE face (towards the yard; A032): French door with railing, window below, louvres on the sides
 win('SE',ax,3.75,1.2,2.0,2,1);
 const rail=box(1.2,0.9,0.05,mat.door,[ax,3.1,13.5+0.08]);rail.material=new THREE.MeshStandardMaterial({color:0x333333,wireframe:true});nw.add(rail);
 win('SE',ax,1.75,1.2,1.6);
-for(const u of[ax-1.9,ax+1.9]){F('SE',u,1.3,1.4,1.7,louvre);F('SE',u,3.85,1.4,1.7,louvre)}
-F('SE',ax,0.3,5.2,0.35,louvre);
 const gt=gable(1.7,1.2,0,0.9,mat.house,0.15);gt.position.set(ax,4.9,13.0);nw.add(gt);
 // NW face (towards the villa; A034)
 win('NW',8.05,2.2,0.9,0.5,2,1);
-F('NW',8.7,1.3,2.0,1.7,louvre);F('NW',8.7,3.85,2.0,1.7,louvre);
-F('NW',7.0,3.85,0.9,1.7,louvre);
 add(nw);
 // west (street-side) entry bay, hatched in plan 1: 2.9 m wide, projects 0.55 m, glazed with double doors
 {const eb=new THREE.Group(),z0=12.6,x0=6.0;
