@@ -153,7 +153,7 @@ function win(face,u,cy,w,h,cols=2,rows=2){
  for(let i=1;i<cols;i++)F(face,u-w/2+w*i/cols,cy,0.05,h,frameM,0.1);
  for(let j=1;j<rows;j++)F(face,u,cy-h/2+h*j/rows,w,0.05,frameM,0.1);
 }
-nw.add(box(5.6,4.9,5.6,mat.house,[ax,2.45,az]));
+{const st=sidingTex('#e8b878','#c99a5c');st.repeat.set(1,4.9/2);nw.add(box(5.6,4.9,5.6,new THREE.MeshStandardMaterial({map:st,roughness:.9}),[ax,2.45,az]));}
 const hip=new THREE.Mesh(new THREE.ConeGeometry(6.2/Math.SQRT2,2.0,4,1),mat.roof);
 hip.rotation.y=Math.PI/4;hip.position.set(ax,4.9+1.0,az);nw.add(hip);
 nw.add(box(0.06,0.9,0.06,mat.trim,[ax,6.9+0.35,az]));
