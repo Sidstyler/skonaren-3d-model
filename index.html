@@ -276,12 +276,18 @@ addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProje
 {const panel=document.createElement('div');panel.style.cssText='position:fixed;right:8px;bottom:56px;width:230px;background:rgba(255,255,255,.93);font:12px sans-serif;padding:8px;border-radius:6px;max-height:70vh;overflow:auto;display:none;z-index:9';
  document.body.appendChild(panel);
  const tog=document.createElement('button');tog.textContent='Edit mode: off';tog.style.cssText='position:fixed;right:8px;bottom:12px;z-index:9;padding:6px 10px;border-radius:6px;border:0;background:#2a4a6e;color:#fff;font-weight:bold;cursor:pointer';document.body.appendChild(tog);
+ const KEY='skonaren-edits-v1';let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+ const pathOf=o=>{const a=[];while(o&&o.parent){a.unshift(o.parent.children.indexOf(o));o=o.parent}return a.join('.')};
+ const sigOf=o=>o.type+(o.geometry?o.geometry.type:'');
+ const persist=()=>localStorage.setItem(KEY,JSON.stringify(saved));
+ const store=o=>{const k=pathOf(o),g=orig.get(o);saved[k]={t:sigOf(o),p:o.position.toArray(),s:o.scale.toArray(),r:o.rotation.y,o:(saved[k]&&saved[k].o)||{p:g.p.toArray(),s:g.s.toArray(),r:g.r}};persist()};
+ for(const[k,v]of Object.entries(saved)){let o=scene;for(const i of k.split('.')){o=o&&o.children[+i]}if(o&&o!==scene&&sigOf(o)===v.t){o.position.fromArray(v.p);o.scale.fromArray(v.s);o.rotation.y=v.r}}
  let on=false,sel=null,helper=null;const ray=new THREE.Raycaster(),m2=new THREE.Vector2(),orig=new Map(),wp=new THREE.Vector3();
  tog.onclick=()=>{on=!on;tog.textContent='Edit mode: '+(on?'on (click a part)':'off');if(!on)pick(null)};
  function pick(o){sel=o;if(helper){scene.remove(helper);helper=null}if(!o){panel.style.display='none';return}
-  if(!orig.has(o))orig.set(o,{p:o.position.clone(),s:o.scale.clone(),r:o.rotation.y});
+  if(!orig.has(o)){const v=saved[pathOf(o)];orig.set(o,v&&v.o?{p:new THREE.Vector3(...v.o.p),s:new THREE.Vector3(...v.o.s),r:v.o.r}:{p:o.position.clone(),s:o.scale.clone(),r:o.rotation.y})}
   helper=new THREE.BoxHelper(o,0xff00ff);scene.add(helper);draw()}
- function inp(label,val,step,fn){const r=document.createElement('label');r.style.cssText='display:flex;justify-content:space-between;margin:2px 0';r.append(label);const i=document.createElement('input');i.type='number';i.step=step;i.value=(+val).toFixed(3);i.style.width='80px';i.onchange=()=>{fn(parseFloat(i.value)||0);helper.update()};r.append(i);return r}
+ function inp(label,val,step,fn){const r=document.createElement('label');r.style.cssText='display:flex;justify-content:space-between;margin:2px 0';r.append(label);const i=document.createElement('input');i.type='number';i.step=step;i.value=(+val).toFixed(3);i.style.width='80px';i.onchange=()=>{fn(parseFloat(i.value)||0);helper.update();store(sel)};r.append(i);return r}
  function draw(){panel.innerHTML='';const o=sel,b=new THREE.Box3().setFromObject(o),sz=b.getSize(new THREE.Vector3());
   const h=document.createElement('div');h.innerHTML='<b>'+(o.type==='Group'?'Group':o.geometry.type.replace('Geometry',''))+'</b> &nbsp; size '+sz.x.toFixed(2)+' × '+sz.y.toFixed(2)+' × '+sz.z.toFixed(2)+' m (world x,y,z)';panel.append(h);
   o.getWorldPosition(wp);
@@ -291,9 +297,10 @@ addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProje
   const row=document.createElement('div');row.style.marginTop='6px';
   const bt=(t,f)=>{const x=document.createElement('button');x.textContent=t;x.style.marginRight='4px';x.onclick=()=>{f();helper.update();draw()};row.append(x)};
   bt('Select parent',()=>{if(o.parent&&o.parent!==scene)pick(o.parent)});
-  bt('Reset',()=>{const g=orig.get(o);o.position.copy(g.p);o.scale.copy(g.s);o.rotation.y=g.r});
+  bt('Reset',()=>{const g=orig.get(o);o.position.copy(g.p);o.scale.copy(g.s);o.rotation.y=g.r;delete saved[pathOf(o)];persist()});
+  bt('Reset all saved',()=>{if(confirm('Discard all saved edits and reload?')){localStorage.removeItem(KEY);location.reload()}});
   bt('Close',()=>pick(null));panel.append(row);
-  const note=document.createElement('div');note.style.cssText='margin-top:6px;color:#555';note.textContent='Tip: windows are separate frame + glass parts; use Select parent to move a whole building. Changes are not saved on reload.';panel.append(note);
+  const note=document.createElement('div');note.style.cssText='margin-top:6px;color:#555';note.textContent='Tip: windows are separate frame + glass parts; use Select parent to move a whole building. Changes are saved automatically in this browser.';panel.append(note);
   panel.style.display='block'}
  let d0=null;const cv=renderer.domElement;
  cv.addEventListener('pointerdown',e=>d0=[e.clientX,e.clientY]);
